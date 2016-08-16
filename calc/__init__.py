@@ -1,4 +1,5 @@
 from calc.interpreter import Interpreter
+from calc.lexer import Lexer
 
 
 def main():
@@ -9,7 +10,8 @@ def main():
             break
         if not text or text == 'q':
             break
-        calc_interpreter = Interpreter(text)
+        calc_lexer = Lexer(text)
+        calc_interpreter = Interpreter(calc_lexer)
         result = calc_interpreter.expr()
         print(result)
 
