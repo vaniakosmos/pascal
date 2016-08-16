@@ -1,20 +1,7 @@
+from calc.token import Token
+
 INTEGER, EOF = 'INTEGER', 'EOF'
 PLUS, MINUS, MULTI, DIV = 'PLUS', 'MINUS', 'MULTI', 'DIV'
-
-
-class Token(object):
-    def __init__(self, type, value):
-        self.type = type
-        self.value = value
-
-    def __str__(self):
-        return '<Token: {type}, {value}>'.format(
-            type=self.type,
-            value=repr(self.value)
-        )
-
-    def __repr__(self):
-        return self.__str__()
 
 
 class Interpreter(object):
@@ -24,6 +11,9 @@ class Interpreter(object):
         self.current_token = None
         self.current_char = self.text[self.pos]
 
+    ##########################################################
+    #                       Lexer code                       #
+    ##########################################################
     @staticmethod
     def error():
         raise Exception('Error parsing input')
@@ -83,57 +73,43 @@ class Interpreter(object):
 
         return Token(EOF, None)
 
+    ##########################################################
+    #               Parser / Interpreter code                #
+    ##########################################################
     def eat(self, token_type):
         if self.current_token.type == token_type:
             self.current_token = self.get_next_token()
-            print(self.current_token)
+            # print(self.current_token)
         else:
             self.error()
+
+    def term(self):
+        """Return an INTEGER token value"""
+        token = self.current_token
+        self.eat(INTEGER)
+        return token.value
 
     def expr(self):
         self.current_token = self.get_next_token()
 
-        result = self.current_token.value
-        self.eat(INTEGER)
+        result = self.term()
 
-        while self.current_token.type is not EOF:
-            op = self.current_token
-            if op.type == PLUS:
+        while self.current_token.type in (PLUS, MINUS):
+            token = self.current_token
+            if token.type == PLUS:
                 self.eat(PLUS)
-            elif op.type == MINUS:
+                result = result + self.term()
+            elif token.type == MINUS:
                 self.eat(MINUS)
-            elif op.type == MULTI:
+                result = result - self.term()
+
+        while self.current_token.type in (MULTI, DIV):
+            token = self.current_token
+            if token.type == MULTI:
                 self.eat(MULTI)
-            else:
+                result = result * self.term()
+            elif token.type == DIV:
                 self.eat(DIV)
-
-            right = self.current_token
-            self.eat(INTEGER)
-
-            if op.type == PLUS:
-                result += right.value
-            elif op.type == MINUS:
-                result -= right.value
-            elif op.type == MULTI:
-                result *= right.value
-            else:
-                result /= right.value
+                result = result / self.term()
 
         return result
-
-
-def main():
-    while True:
-        try:
-            text = input('calc > ')
-        except EOFError:
-            break
-        if not text or text == 'q':
-            break
-        interpreter = Interpreter(text)
-        result = interpreter.expr()
-        print(result)
-
-
-if __name__ == '__main__':
-    main()
