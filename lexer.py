@@ -1,5 +1,6 @@
-from calc.token import Token
-from calc.utils import *
+from utils import *
+
+from token import Token
 
 
 class Lexer:

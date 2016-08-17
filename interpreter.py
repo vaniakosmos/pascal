@@ -1,4 +1,4 @@
-from calc.utils import *
+from utils import *
 
 
 class Interpreter(object):

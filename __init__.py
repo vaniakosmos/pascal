@@ -1,5 +1,7 @@
-from calc.interpreter import Interpreter
-from calc.lexer import Lexer
+from lexer import Lexer
+
+from ast import Interpreter
+from ast import Parser
 
 
 def main():
@@ -11,8 +13,9 @@ def main():
         if not text or text == 'q':
             break
         calc_lexer = Lexer(text)
-        calc_interpreter = Interpreter(calc_lexer)
-        result = calc_interpreter.expr()
+        parser = Parser(calc_lexer)
+        calc_interpreter = Interpreter(parser)
+        result = calc_interpreter.interpret()
         print(result)
 
 
