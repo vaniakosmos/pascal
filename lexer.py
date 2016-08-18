@@ -1,7 +1,5 @@
 from utils import *
 
-from token import Token
-
 
 class Lexer:
     def __init__(self, text):
@@ -20,6 +18,23 @@ class Lexer:
             self.current_char = None  # Indicates end of input
         else:
             self.current_char = self.text[self.pos]
+
+    def peek(self):
+        peek_pos = self.pos + 1
+        if peek_pos > len(self.text) - 1:
+            return None
+        else:
+            return self.text[peek_pos]
+
+    def _id(self):
+        """Handle identifiers and reserved keywords"""
+        result = ''
+        while self.current_char is not None and self.current_char.isalnum():
+            result += self.current_char
+            self.advance()
+
+        token = RESERVED_KEYWORDS.get(result, Token(ID, result))
+        return token
 
     def skip_whitespace(self):
         while self.current_char is not None and self.current_char.isspace():
@@ -47,6 +62,22 @@ class Lexer:
 
             if self.current_char.isdigit():
                 return Token(INTEGER, self.integer())
+
+            if self.current_char.isalpha():
+                return self._id()
+
+            if self.current_char == ':' and self.peek() == '=':
+                self.advance()
+                self.advance()
+                return Token(ASSIGN, ':=')
+
+            if self.current_char == ';':
+                self.advance()
+                return Token(SEMI, ';')
+
+            if self.current_char == '.':
+                self.advance()
+                return Token(DOT, '.')
 
             if self.current_char == '+':
                 self.advance()

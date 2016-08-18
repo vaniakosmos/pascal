@@ -1,67 +1,62 @@
 from utils import *
 
 
-class Interpreter(object):
-    def __init__(self, lexer):
-        self.lexer = lexer
-        self.current_token = self.lexer.get_next_token()
+class NodeVisitor(object):
+    def visit(self, node):
+        method_name = 'visit_' + type(node).__name__
+        visitor = getattr(self, method_name, self.generic_visit)
+        return visitor(node)
 
     @staticmethod
-    def error():
-        raise Exception('Invalid syntax')
+    def generic_visit(self, node):
+        raise Exception('No visit_{} method'.format(type(node).__name__))
 
-    def eat(self, token_type):
-        if self.current_token.type == token_type:
-            self.current_token = self.lexer.get_next_token()
+
+class Interpreter(NodeVisitor):
+    GLOBAL_SCOPE = {}
+
+    def __init__(self, parser):
+        self.parser = parser
+
+    def visit_BinOp(self, node):
+        if node.op.type == PLUS:
+            return self.visit(node.left) + self.visit(node.right)
+        elif node.op.type == MINUS:
+            return self.visit(node.left) - self.visit(node.right)
+        elif node.op.type == MUL:
+            return self.visit(node.left) * self.visit(node.right)
+        elif node.op.type == DIV:
+            return self.visit(node.left) / self.visit(node.right)
+
+    def visit_Num(self, node):
+        return node.value
+
+    def visit_UnaryOp(self, node):
+        op = node.op.type
+        if op == PLUS:
+            return +self.visit(node.expr)
+        elif op == MINUS:
+            return -self.visit(node.expr)
+
+    def visit_Compound(self, node):
+        for child in node.children:
+            self.visit(child)
+
+    def visit_Assign(self, node):
+        var_name = node.left.value
+        self.GLOBAL_SCOPE[var_name] = self.visit(node.right)
+
+    def visit_Var(self, node):
+        var_name = node.value
+        val = self.GLOBAL_SCOPE.get(var_name)
+        if val is None:
+            raise NameError(repr(var_name))
         else:
-            self.error()
+            return val
 
-    def factor(self):
-        """factor : INTEGER | LPAREN expr RPAREN"""
-        token = self.current_token
-        if token.type == INTEGER:
-            self.eat(INTEGER)
-            return token.value
-        elif token.type == LPAREN:
-            self.eat(LPAREN)
-            result = self.expr()
-            self.eat(RPAREN)
-            return result
+    def visit_NoOp(self, node):
+        pass
 
-    def term(self):
-        """term : factor ((MUL | DIV) factor)*"""
-        result = self.factor()
-
-        while self.current_token.type in (MUL, DIV):
-            token = self.current_token
-            if token.type == MUL:
-                self.eat(MUL)
-                result = result * self.factor()
-            elif token.type == DIV:
-                self.eat(DIV)
-                result = result / self.factor()
-
-        return result
-
-    def expr(self):
-        """Arithmetic expression parser / interpreter.
-
-            calc>  14 + 2 * 3 - 6 / 2
-            17
-
-            expr   : term ((PLUS | MINUS) term)*
-            term   : factor ((MUL | DIV) factor)*
-            factor : INTEGER | LPAREN expr RPAREN
-        """
-        result = self.term()
-
-        while self.current_token.type in (PLUS, MINUS):
-            token = self.current_token
-            if token.type == PLUS:
-                self.eat(PLUS)
-                result = result + self.term()
-            elif token.type == MINUS:
-                self.eat(MINUS)
-                result = result - self.term()
-
-        return result
+    def interpret(self):
+        tree = self.parser.parse()
+        return self.visit(tree)
