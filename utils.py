@@ -1,14 +1,23 @@
 from token import Token
 
-INTEGER, EOF = 'INTEGER', 'EOF'
-PLUS, MINUS, MUL, DIV = 'PLUS', 'MINUS', 'MUL', 'DIV'
+INTEGER, REAL, EOF = 'INTEGER', 'REAL', 'EOF'
+INTEGER_CONST, REAL_CONST = 'INTEGER_CONST', 'REAL_CONST'
+
+PLUS, MINUS, MUL = 'PLUS', 'MINUS', 'MUL'
+INTEGER_DIV, FLOAT_DIV = 'INTEGER_DIV', 'FLOAT_DIV'
+
 LPAREN, RPAREN = '(', ')'
 ASSIGN, SEMI, DOT = ':=', ';', 'DOT'
-BEGIN, END, ID = 'BEGIN', 'END', 'ID'
 
-OPERATIONS = (PLUS, MINUS, MUL, DIV)
+PROGRAM, VAR, BEGIN, END, ID = 'PROGRAM', 'VAR', 'BEGIN', 'END', 'ID'
+COLON, COMMA = 'COLON', 'COMMA'
 
 RESERVED_KEYWORDS = {
-        'BEGIN': Token('BEGIN', 'BEGIN'),
-        'END': Token('END', 'END'),
-    }
+    'PROGRAM': Token('PROGRAM', 'PROGRAM'),
+    'VAR': Token('VAR', 'VAR'),
+    'DIV': Token('INTEGER_DIV', 'DIV'),
+    'INTEGER': Token('INTEGER', 'INTEGER'),
+    'REAL': Token('REAL', 'REAL'),
+    'BEGIN': Token('BEGIN', 'BEGIN'),
+    'END': Token('END', 'END'),
+}
